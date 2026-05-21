@@ -918,6 +918,17 @@ if uploaded is None:
         """)
     st.stop()
 
+# ── Step 2: Umpire name ───────────────────────────────────────────────────────
+st.markdown("### 2 · Umpire Name")
+ump_name = st.text_input("Umpire name", placeholder="e.g. Ron Burkhart", label_visibility="collapsed")
+
+# ── Step 3: Team colors (collapsed by default) ────────────────────────────────
+with st.expander("Team colors (optional — auto-detected by default)"):
+    auto_color = st.checkbox("Auto-detect from team ID", value=True)
+    cc1, cc2 = st.columns(2)
+    home_color_input = cc1.color_picker("Home", "#841617")
+    away_color_input = cc2.color_picker("Away", "#005A9C")
+
 # Load and process
 with st.spinner("Reading CSV…"):
     try:
@@ -958,18 +969,6 @@ with st.expander("Pitcher breakdown"):
             f"Ball {pst['ball_acc']*100:.1f}% · Strike {pst['strike_acc']*100:.1f}% · "
             f"{pst['phantom']} phantom · {pst['missed']} missed"
         )
-
-# ── Step 2: Umpire name ───────────────────────────────────────────────────────
-st.divider()
-st.markdown("### 2 · Umpire Name")
-ump_name = st.text_input("Umpire name", placeholder="e.g. Ron Burkhart", label_visibility="collapsed")
-
-# ── Step 3: Team colors (collapsed by default) ────────────────────────────────
-with st.expander("Team colors (optional — auto-detected by default)"):
-    auto_color = st.checkbox("Auto-detect from team ID", value=True)
-    cc1, cc2 = st.columns(2)
-    home_color_input = cc1.color_picker("Home", "#841617")
-    away_color_input = cc2.color_picker("Away", "#005A9C")
 
 home_color = guess_color(game["home_abb"], home_color_input) if auto_color else home_color_input
 away_color = guess_color(game["away_abb"], away_color_input) if auto_color else away_color_input
