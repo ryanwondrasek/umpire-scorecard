@@ -301,7 +301,7 @@ def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn
     for yh in (_YLO+(_YHI-_YLO)/3, _YLO+2*(_YHI-_YLO)/3):
         ax.plot([-_XL,_XL],[yh,yh],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
     # Home plate  (_XL = 17/24 ft = 8.5/12 ft, so all plate dims derive from _XL)
-    plate_verts = [(-_XL,0),(_XL,0),(_XL,_XL),(0,2*_XL),(-_XL,_XL)]
+    plate_verts = [(0,0),(_XL,_XL),(_XL,2*_XL),(-_XL,2*_XL),(-_XL,_XL)]
     ax.add_patch(Polygon(plate_verts,closed=True,facecolor='#EFEFEF',edgecolor='#888888',linewidth=0.9,zorder=2))
     # Zone dimension labels
     ax.text(0, _YLO-0.08, '17 in', ha='center', va='top',
