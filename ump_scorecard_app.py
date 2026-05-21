@@ -287,12 +287,12 @@ def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn
     ax.set_aspect('equal'); ax.axis('off')
     if len(s_pts) >= 4:
         xs=np.array([p[0] for p in s_pts]); ys=np.array([p[1] for p in s_pts])
-        kde=gaussian_kde(np.vstack([xs,ys]),bw_method=0.30)
+        kde=gaussian_kde(np.vstack([xs,ys]),bw_method=0.40)
         gx=np.linspace(-1.7,1.7,200); gy=np.linspace(0.5,4.5,200)
         GX,GY=np.meshgrid(gx,gy)
         Z=kde(np.vstack([GX.ravel(),GY.ravel()])).reshape(GX.shape)
-        ax.contourf(GX,GY,Z,levels=[Z.max()*0.18,Z.max()],colors=[ZONE_PINK],alpha=0.30,zorder=1)
-        ax.contour(GX,GY,Z,levels=[Z.max()*0.18],colors=[ZONE_BORDER],linewidths=1.5,linestyles='dotted',zorder=2)
+        ax.contourf(GX,GY,Z,levels=[Z.max()*0.12,Z.max()],colors=[ZONE_PINK],alpha=0.30,zorder=1)
+        ax.contour(GX,GY,Z,levels=[Z.max()*0.12],colors=[ZONE_BORDER],linewidths=1.5,linestyles='dotted',zorder=2)
     ax.add_patch(Rectangle((-_XL,_YLO),2*_XL,_YHI-_YLO,linewidth=1.0,edgecolor=BLACK,facecolor='none',zorder=3))
     _R=0.159
     ax.add_patch(Rectangle((-_XL-_R,_YLO-_R),2*_XL+2*_R,_YHI-_YLO+2*_R,linewidth=1.0,edgecolor='orange',alpha=0.65,linestyle='dashed',facecolor='none',zorder=3))
