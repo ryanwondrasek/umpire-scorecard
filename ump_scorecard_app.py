@@ -2,7 +2,7 @@
 Homeplate Umpire Scorecard Generator
 Run: streamlit run ump_scorecard_app.py
 """
-import io, os, csv, warnings
+import io, os, csv, warnings, hashlib
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -973,27 +973,40 @@ with st.expander("Pitcher breakdown"):
 home_color = guess_color(game["home_abb"], home_color_input) if auto_color else home_color_input
 away_color = guess_color(game["away_abb"], away_color_input) if auto_color else away_color_input
 
-# ── Step 4: Generate ─────────────────────────────────────────────────────────
+# ── Step 4: Generate & Download ──────────────────────────────────────────────
 st.divider()
-st.markdown("### 3 · Generate PDF")
+st.markdown("### 3 · Download PDF")
 
 if not ump_name.strip():
     st.warning("Enter the umpire's name above first.")
     st.stop()
 
-if st.button("Generate Scorecard PDF", type="primary", use_container_width=True):
+# Cache PDF in session state — only rebuilds when inputs actually change
+_cache_key = hashlib.md5(
+    f"{uploaded.name}_{uploaded.size}_{ump_name.strip()}_{home_color}_{away_color}".encode()
+).hexdigest()
+
+if st.session_state.get("_pdf_key") != _cache_key:
     with st.spinner("Building PDF…"):
         try:
-            pdf_bytes = generate_pdf(game, ump_name.strip(), home_color, away_color)
-            filename = f"UmpireScorecard_{game['home_abb']}vs{game['away_abb']}_{game['date_short'].replace('/','')}.pdf"
-            st.success(f"✅ PDF ready — {len(game['pitchers'])+2+len(game['catchers'])} pages")
-            st.download_button(
-                label="⬇ Download PDF",
-                data=pdf_bytes,
-                file_name=filename,
-                mime="application/pdf",
-                use_container_width=True,
+            st.session_state._pdf_bytes    = generate_pdf(game, ump_name.strip(), home_color, away_color)
+            st.session_state._pdf_filename = (
+                f"UmpireScorecard_{game['home_abb']}vs{game['away_abb']}"
+                f"_{game['date_short'].replace('/','')}.pdf"
             )
+            st.session_state._pdf_key = _cache_key
         except Exception as e:
             st.error(f"Error generating PDF: {e}")
             import traceback; st.code(traceback.format_exc())
+            st.stop()
+
+n_pages = len(game["pitchers"]) + 2 + len(game["catchers"])
+st.success(f"✅ {n_pages}-page report ready for {game['home_abb']} vs {game['away_abb']}")
+st.download_button(
+    label="⬇ Download Scorecard PDF",
+    data=st.session_state._pdf_bytes,
+    file_name=st.session_state._pdf_filename,
+    mime="application/pdf",
+    type="primary",
+    use_container_width=True,
+)
