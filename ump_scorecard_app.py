@@ -313,23 +313,23 @@ def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn
         key=(round(sx,3),round(sy,3))
         if key in miss_set or key in imp_set: continue
         if r["PitchCall"]=="StrikeCalled":
-            ax.plot(sx,sy,'o',ms=13,color=ZONE_BORDER,alpha=0.25,markeredgecolor='none',zorder=2)
+            ax.plot(sx,sy,'o',ms=12,color=ZONE_BORDER,alpha=0.25,markeredgecolor='none',zorder=2)
         elif r["PitchCall"]=="BallCalled":
-            ax.plot(sx,sy,'o',ms=13,color='#2E75B6',alpha=0.25,markeredgecolor='none',zorder=2)
+            ax.plot(sx,sy,'o',ms=12,color='#2E75B6',alpha=0.25,markeredgecolor='none',zorder=2)
     for sx,sy,team in p_pts:
         if (round(sx,3),round(sy,3)) not in imp_set:
             ec = team_edge_fn(team) if team_edge_fn else 'none'
             lbl = get_abb(str(team))[:2] if team else ''
-            ax.plot(sx,sy,'o',ms=13,color=ZONE_BORDER,markeredgecolor=ec,markeredgewidth=0.8,zorder=4)
+            ax.plot(sx,sy,'o',ms=12,color=ZONE_BORDER,markeredgecolor=ec,markeredgewidth=0.8,zorder=4)
             if show_labels: ax.text(sx,sy,lbl,ha='center',va='center',fontsize=4.5,color='white',fontweight='bold',zorder=5)
     for sx,sy,team in m_pts:
         if (round(sx,3),round(sy,3)) not in imp_set:
             ec = team_edge_fn(team) if team_edge_fn else 'none'
             lbl = get_abb(str(team))[:2] if team else ''
-            ax.plot(sx,sy,'o',ms=13,color='#2E75B6',markeredgecolor=ec,markeredgewidth=0.8,zorder=4)
+            ax.plot(sx,sy,'o',ms=12,color='#2E75B6',markeredgecolor=ec,markeredgewidth=0.8,zorder=4)
             if show_labels: ax.text(sx,sy,lbl,ha='center',va='center',fontsize=4.5,color='white',fontweight='bold',zorder=5)
     for i,((sx,sy),color) in enumerate(zip(imp_pts,imp_colors),1):
-        ax.plot(sx,sy,'o',ms=13,color=color,markeredgecolor='white',markeredgewidth=0.8,zorder=5)
+        ax.plot(sx,sy,'o',ms=12,color=color,markeredgecolor='white',markeredgewidth=0.8,zorder=5)
         tc='black' if color=='#F1C40F' else 'white'
         ax.text(sx,sy,str(i),ha='center',va='center',fontsize=7,color=tc,fontweight='bold',zorder=6)
 
