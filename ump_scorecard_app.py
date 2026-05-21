@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.patches import Wedge, Rectangle, Circle
+from matplotlib.patches import Wedge, Rectangle, Circle, Polygon
 from matplotlib.font_manager import FontProperties
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import gaussian_kde
@@ -283,7 +283,7 @@ def draw_acc_bar(ax, pct, color, label, avg_pct=None):
     ax.text(-0.01,by+bh+0.14,label,ha='left',va='bottom',fontsize=11,fontweight='bold',color=BLACK,fontfamily='Arial')
 
 def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn=None, show_labels=True):
-    ax.set_facecolor('white'); ax.set_xlim(-2.0,2.6); ax.set_ylim(0.1,4.8)
+    ax.set_facecolor('white'); ax.set_xlim(-2.0,2.6); ax.set_ylim(-0.15,4.8)
     ax.set_aspect('equal'); ax.axis('off')
     if len(s_pts) >= 4:
         xs=np.array([p[0] for p in s_pts]); ys=np.array([p[1] for p in s_pts])
@@ -300,6 +300,9 @@ def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn
         ax.plot([xv,xv],[_YLO,_YHI],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
     for yh in (_YLO+(_YHI-_YLO)/3, _YLO+2*(_YHI-_YLO)/3):
         ax.plot([-_XL,_XL],[yh,yh],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
+    # Home plate  (_XL = 17/24 ft = 8.5/12 ft, so all plate dims derive from _XL)
+    plate_verts = [(-_XL,0),(_XL,0),(_XL,_XL),(0,2*_XL),(-_XL,_XL)]
+    ax.add_patch(Polygon(plate_verts,closed=True,facecolor='#EFEFEF',edgecolor='#888888',linewidth=0.9,zorder=2))
     # Zone dimension labels
     ax.text(0, _YLO-0.08, '17 in', ha='center', va='top',
             fontsize=6.5, color='black', alpha=0.40, fontfamily='Arial', zorder=4)
