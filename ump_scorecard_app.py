@@ -74,7 +74,7 @@ def format_date(date_str: str) -> str:
 # ── Zone constants ────────────────────────────────────────────────────────────
 # A pitch is a strike if any part of the softball touches the zone.
 # Softball radius = 1.91 in = 0.159 ft → expand zone by 0.159 ft on all sides.
-_XL = 17/24; _YLO = 1.5; _YHI = 1.5 + 22/12; _R = 0.159
+_XL = 17/24; _YLO = 1.5; _YHI = 1.5 + 20/12; _R = 0.159
 def _in_zone(r):
     try: return abs(float(r["PlateLocSide"])) <= _XL+_R and _YLO-_R <= float(r["PlateLocHeight"]) <= _YHI+_R
     except: return False
@@ -303,7 +303,7 @@ def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn
     # Zone dimension labels
     ax.text(0, _YLO-0.08, '17 in', ha='center', va='top',
             fontsize=6.5, color='black', alpha=0.40, fontfamily='Arial', zorder=4)
-    ax.text(_XL+0.09, (_YLO+_YHI)/2, '22 in', ha='left', va='center',
+    ax.text(_XL+0.09, (_YLO+_YHI)/2, '20 in', ha='left', va='center',
             fontsize=6.5, color='black', alpha=0.40, fontfamily='Arial', rotation=90, zorder=4)
     imp_set={(round(x,3),round(y,3)) for x,y in imp_pts}
     miss_set={(round(x,3),round(y,3)) for x,y,_ in p_pts+m_pts}
