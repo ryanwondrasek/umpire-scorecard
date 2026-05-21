@@ -74,7 +74,7 @@ def format_date(date_str: str) -> str:
 # ── Zone constants ────────────────────────────────────────────────────────────
 # A pitch is a strike if any part of the softball touches the zone.
 # Softball radius = 1.91 in = 0.159 ft → expand zone by 0.159 ft on all sides.
-_XL = 0.833; _YLO = 1.5; _YHI = 3.0; _R = 0.159
+_XL = 17/24; _YLO = 1.5; _YHI = 1.5 + 22/12; _R = 0.159
 def _in_zone(r):
     try: return abs(float(r["PlateLocSide"])) <= _XL+_R and _YLO-_R <= float(r["PlateLocHeight"]) <= _YHI+_R
     except: return False
@@ -293,17 +293,17 @@ def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn
         Z=kde(np.vstack([GX.ravel(),GY.ravel()])).reshape(GX.shape)
         ax.contourf(GX,GY,Z,levels=[Z.max()*0.08,Z.max()],colors=[ZONE_PINK],alpha=0.30,zorder=1)
         ax.contour(GX,GY,Z,levels=[Z.max()*0.08],colors=[ZONE_BORDER],linewidths=1.5,linestyles='dotted',zorder=2)
-    ax.add_patch(Rectangle((-0.833,1.5),1.666,1.5,linewidth=1.0,edgecolor=BLACK,facecolor='none',zorder=3))
+    ax.add_patch(Rectangle((-_XL,_YLO),2*_XL,_YHI-_YLO,linewidth=1.0,edgecolor=BLACK,facecolor='none',zorder=3))
     _R=0.159
-    ax.add_patch(Rectangle((-0.833-_R,1.5-_R),1.666+2*_R,1.5+2*_R,linewidth=1.0,edgecolor='orange',alpha=0.65,linestyle='dashed',facecolor='none',zorder=3))
-    for xv in (-0.278, 0.278):
-        ax.plot([xv,xv],[1.5,3.0],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
-    for yh in (2.0, 2.5):
-        ax.plot([-0.833,0.833],[yh,yh],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
+    ax.add_patch(Rectangle((-_XL-_R,_YLO-_R),2*_XL+2*_R,_YHI-_YLO+2*_R,linewidth=1.0,edgecolor='orange',alpha=0.65,linestyle='dashed',facecolor='none',zorder=3))
+    for xv in (-_XL/3, _XL/3):
+        ax.plot([xv,xv],[_YLO,_YHI],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
+    for yh in (_YLO+(_YHI-_YLO)/3, _YLO+2*(_YHI-_YLO)/3):
+        ax.plot([-_XL,_XL],[yh,yh],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
     # Zone dimension labels
-    ax.text(0, 1.42, f'{2*_XL:.2f} ft', ha='center', va='top',
+    ax.text(0, _YLO-0.08, '17 in', ha='center', va='top',
             fontsize=6.5, color='black', alpha=0.40, fontfamily='Arial', zorder=4)
-    ax.text(0.92, (_YLO+_YHI)/2, f'{_YHI-_YLO:.2f} ft', ha='left', va='center',
+    ax.text(_XL+0.09, (_YLO+_YHI)/2, '22 in', ha='left', va='center',
             fontsize=6.5, color='black', alpha=0.40, fontfamily='Arial', rotation=90, zorder=4)
     imp_set={(round(x,3),round(y,3)) for x,y in imp_pts}
     miss_set={(round(x,3),round(y,3)) for x,y,_ in p_pts+m_pts}
@@ -370,7 +370,7 @@ def draw_powered_by(ax):
 def add_footer(fig, game):
     ax=fig.add_axes(m(0.0,0.005,1.0,0.025)); ax.set_facecolor(BG); ax.axis('off')
     ax.text(0.5,0.5,
-            f"Accuracy measured on Trackman softball zone (±0.833 ft horiz, 1.5–3.0 ft vert)  |  "
+            f"Accuracy measured on Trackman softball zone (17 in wide, 22 in tall)  |  "
             f"Solid box = Trackman zone  |  Source: Trackman — {game['home_abb']} vs {game['away_abb']}, {game['date_short']}",
             ha='center',va='center',fontsize=5.5,color=LGREY,fontfamily='Arial')
 
