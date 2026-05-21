@@ -865,6 +865,17 @@ def generate_pdf(game, ump_name, home_color, away_color) -> bytes:
     return buf.read()
 
 # ── Zone preview helper ───────────────────────────────────────────────────────
+def render_legend_preview(game, home_color, away_color) -> bytes:
+    fig, ax = plt.subplots(figsize=(5, 1.5), facecolor='white')
+    fig.subplots_adjust(0, 0, 1, 1)
+    draw_zone_legend(ax, team_labels=(game["home_abb"], game["away_abb"]),
+                     team_colors=(home_color, away_color))
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+    buf.seek(0)
+    return buf.read()
+
 def render_zone_preview(game, home_color, away_color) -> bytes:
     gs = game["gs"]
     imp_colors = IMP_COLORS[:len(game["impactful"])]
@@ -959,6 +970,7 @@ _prev_home = guess_color(game["home_abb"], "#841617")
 _prev_away = guess_color(game["away_abb"], "#005A9C")
 st.markdown("**All Missed Calls — Estimated Ump Zone**")
 st.image(render_zone_preview(game, _prev_home, _prev_away), use_container_width=True)
+st.image(render_legend_preview(game, _prev_home, _prev_away), use_container_width=True)
 
 with st.expander("Pitcher breakdown"):
     for p in game["pitchers"]:
