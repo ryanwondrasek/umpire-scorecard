@@ -300,6 +300,11 @@ def draw_zone(ax, subset, p_pts, m_pts, s_pts, imp_pts, imp_colors, team_edge_fn
         ax.plot([xv,xv],[1.5,3.0],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
     for yh in (2.0, 2.5):
         ax.plot([-0.833,0.833],[yh,yh],color='grey',alpha=0.25,linewidth=0.6,zorder=3)
+    # Zone dimension labels
+    ax.text(0, 1.42, f'{2*_XL:.2f} ft', ha='center', va='top',
+            fontsize=6.5, color='black', alpha=0.40, fontfamily='Arial', zorder=4)
+    ax.text(0.92, (_YLO+_YHI)/2, f'{_YHI-_YLO:.2f} ft', ha='left', va='center',
+            fontsize=6.5, color='black', alpha=0.40, fontfamily='Arial', rotation=90, zorder=4)
     imp_set={(round(x,3),round(y,3)) for x,y in imp_pts}
     miss_set={(round(x,3),round(y,3)) for x,y,_ in p_pts+m_pts}
     for r in subset:
