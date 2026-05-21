@@ -865,39 +865,46 @@ def generate_pdf(game, ump_name, home_color, away_color) -> bytes:
     return buf.read()
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Streamlit UI
+# Streamlit UI  — mobile-first (no sidebar, centered, touch-friendly)
 # ══════════════════════════════════════════════════════════════════════════════
-st.set_page_config(page_title="Umpire Scorecard Generator", page_icon="⚾", layout="wide")
+st.set_page_config(page_title="Umpire Scorecard", page_icon="⚾", layout="centered")
 
-st.title("Homeplate Umpire Scorecard Generator")
-st.caption("Upload a Trackman softball CSV and enter the umpire's name to generate a full multi-page PDF scorecard.")
+st.markdown("""
+<style>
+/* Larger base font on small screens */
+@media (max-width: 768px) {
+    html, body, [class*="css"] { font-size: 16px !important; }
+    .stButton > button { font-size: 18px !important; padding: 0.75rem 1rem !important; }
+    .stDownloadButton > button { font-size: 18px !important; padding: 0.75rem 1rem !important; }
+    .stTextInput input { font-size: 16px !important; }
+    .stFileUploader { font-size: 16px !important; }
+}
+/* Remove top padding so title sits high */
+.block-container { padding-top: 1.5rem !important; }
+</style>
+""", unsafe_allow_html=True)
 
-with st.sidebar:
-    st.header("Inputs")
-    uploaded = st.file_uploader("Trackman CSV", type=["csv"])
-    ump_name = st.text_input("Umpire Name", placeholder="e.g. Ron Burkhart")
-    st.divider()
-    st.subheader("Team Colors")
-    st.caption("Auto-detected from team ID. Override here if needed.")
-    home_color_input = st.color_picker("Home Team Color", "#841617")
-    away_color_input = st.color_picker("Away Team Color", "#005A9C")
-    auto_color = st.checkbox("Auto-detect colors from team ID", value=True)
+st.title("⚾ Umpire Scorecard")
+
+# ── Step 1: Upload CSV ────────────────────────────────────────────────────────
+st.markdown("### 1 · Upload Game CSV")
+uploaded = st.file_uploader("Trackman CSV", type=["csv"], label_visibility="collapsed")
 
 if uploaded is None:
-    st.info("Upload a Trackman CSV in the sidebar to get started.")
-    st.markdown("""
-**What this generates:**
+    st.info("Tap above to upload a Trackman softball CSV.")
+    with st.expander("What does this generate?"):
+        st.markdown("""
 - **Page 1** — Full game scorecard: accuracy, missed calls, favor, consistency, zone chart, impactful plays
-- **Page 2** — Pitcher workbook: all pitchers side-by-side with stats
-- **Pages 3+** — Individual pitcher pages: zone chart, accuracy breakdown, impactful calls per pitcher
+- **Page 2** — Pitcher workbook: all pitchers side-by-side
+- **Pages 3+** — Individual pitcher & catcher pages with zone charts
 
-**Required CSV columns:** `PlateLocSide`, `PlateLocHeight`, `PitchCall`, `Pitcher`, `PitcherTeam`,
+**Required columns:** `PlateLocSide`, `PlateLocHeight`, `PitchCall`, `Pitcher`, `PitcherTeam`,
 `HomeTeam`, `AwayTeam`, `RunsScored`, `Inning`, `Top/Bottom`, `Outs`, `Balls`, `Strikes`, `Date`
-    """)
+        """)
     st.stop()
 
-# Load and process data
-with st.spinner("Reading CSV..."):
+# Load and process
+with st.spinner("Reading CSV…"):
     try:
         rows = load_csv(uploaded)
         game = process_game(rows)
@@ -905,51 +912,63 @@ with st.spinner("Reading CSV..."):
         st.error(f"Error reading CSV: {e}")
         st.stop()
 
-# Apply auto-color if checked
-if auto_color:
-    home_color = guess_color(game["home_abb"], home_color_input)
-    away_color = guess_color(game["away_abb"], away_color_input)
-else:
-    home_color = home_color_input
-    away_color = away_color_input
-
 gs = game["gs"]
 
-# Preview stats
-st.subheader(f"{game['home_abb']} {game['home_score']} – {game['away_score']} {game['away_abb']}   ·   {game['date_long']}")
+# ── Game header ───────────────────────────────────────────────────────────────
+st.divider()
+st.markdown(f"### {game['home_abb']} {game['home_score']} – {game['away_score']} {game['away_abb']}")
+st.caption(game["date_long"])
 
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Overall Accuracy", f"{gs['acc']*100:.1f}%", f"{gs['correct']}/{gs['total']}")
-col2.metric("Missed Calls", gs["phantom"]+gs["missed"], f"{gs['phantom']} phantom · {gs['missed']} missed")
-col3.metric("Ball Accuracy", f"{gs['ball_acc']*100:.1f}%", f"{gs['ball_correct']}/{gs['ball_total']}")
-col4.metric("Strike Accuracy", f"{gs['strike_acc']*100:.1f}%", f"{gs['strike_correct']}/{gs['strike_total']}")
-
-st.caption(f"Consistency: {game['consistency']*100:.1f}%  ·  Pitchers: {len(game['pitchers'])}")
+# 2×2 metric grid (readable on iPhone)
+c1, c2 = st.columns(2)
+c1.metric("Overall Accuracy",  f"{gs['acc']*100:.1f}%",      f"{gs['correct']}/{gs['total']}")
+c2.metric("Missed Calls",       gs["phantom"]+gs["missed"],   f"{gs['phantom']} ph · {gs['missed']} ms")
+c3, c4 = st.columns(2)
+c3.metric("Ball Accuracy",      f"{gs['ball_acc']*100:.1f}%", f"{gs['ball_correct']}/{gs['ball_total']}")
+c4.metric("Strike Accuracy",    f"{gs['strike_acc']*100:.1f}%", f"{gs['strike_correct']}/{gs['strike_total']}")
+st.caption(f"Consistency {game['consistency']*100:.1f}%  ·  {len(game['pitchers'])} pitchers  ·  {len(game['catchers'])} catchers")
 
 with st.expander("Pitcher breakdown"):
     for p in game["pitchers"]:
         pst = p["stats"]
         st.markdown(
-            f"**{p['name']}** ({p['abb']}) — "
-            f"{pst['correct']}/{pst['total']} correct ({pst['acc']*100:.1f}%)  ·  "
-            f"Ball {pst['ball_acc']*100:.1f}%  ·  Strike {pst['strike_acc']*100:.1f}%  ·  "
-            f"{pst['phantom']} phantom  ·  {pst['missed']} missed"
+            f"**{p['name']}** ({p['abb']})  \n"
+            f"{pst['correct']}/{pst['total']} ({pst['acc']*100:.1f}%) · "
+            f"Ball {pst['ball_acc']*100:.1f}% · Strike {pst['strike_acc']*100:.1f}% · "
+            f"{pst['phantom']} phantom · {pst['missed']} missed"
         )
 
+# ── Step 2: Umpire name ───────────────────────────────────────────────────────
 st.divider()
+st.markdown("### 2 · Umpire Name")
+ump_name = st.text_input("Umpire name", placeholder="e.g. Ron Burkhart", label_visibility="collapsed")
+
+# ── Step 3: Team colors (collapsed by default) ────────────────────────────────
+with st.expander("Team colors (optional — auto-detected by default)"):
+    auto_color = st.checkbox("Auto-detect from team ID", value=True)
+    cc1, cc2 = st.columns(2)
+    home_color_input = cc1.color_picker("Home", "#841617")
+    away_color_input = cc2.color_picker("Away", "#005A9C")
+
+home_color = guess_color(game["home_abb"], home_color_input) if auto_color else home_color_input
+away_color = guess_color(game["away_abb"], away_color_input) if auto_color else away_color_input
+
+# ── Step 4: Generate ─────────────────────────────────────────────────────────
+st.divider()
+st.markdown("### 3 · Generate PDF")
+
 if not ump_name.strip():
-    st.warning("Enter the umpire's name in the sidebar to generate the PDF.")
+    st.warning("Enter the umpire's name above first.")
     st.stop()
 
 if st.button("Generate Scorecard PDF", type="primary", use_container_width=True):
-    with st.spinner("Building PDF..."):
+    with st.spinner("Building PDF…"):
         try:
             pdf_bytes = generate_pdf(game, ump_name.strip(), home_color, away_color)
-            safe_ump = ump_name.strip().replace(" ","_")
             filename = f"UmpireScorecard_{game['home_abb']}vs{game['away_abb']}_{game['date_short'].replace('/','')}.pdf"
-            st.success(f"PDF ready — {len(game['pitchers'])+2} pages")
+            st.success(f"✅ PDF ready — {len(game['pitchers'])+2+len(game['catchers'])} pages")
             st.download_button(
-                label="Download PDF",
+                label="⬇ Download PDF",
                 data=pdf_bytes,
                 file_name=filename,
                 mime="application/pdf",
