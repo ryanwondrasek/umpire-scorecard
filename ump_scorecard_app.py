@@ -864,6 +864,21 @@ def generate_pdf(game, ump_name, home_color, away_color) -> bytes:
     buf.seek(0)
     return buf.read()
 
+# ── Zone preview helper ───────────────────────────────────────────────────────
+def render_zone_preview(game, home_color, away_color) -> bytes:
+    gs = game["gs"]
+    imp_colors = IMP_COLORS[:len(game["impactful"])]
+    def _edge_fn(team): return home_color if get_abb(str(team))==game["home_abb"] else away_color
+    fig, ax = plt.subplots(figsize=(4, 4.8), facecolor='white')
+    fig.subplots_adjust(0.02, 0.02, 0.98, 0.98)
+    draw_zone(ax, game["called"], gs["phantom_pts"], gs["missed_pts"], gs["strike_pts"],
+              game["impactful_pts"], imp_colors, team_edge_fn=_edge_fn)
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+    buf.seek(0)
+    return buf.read()
+
 # ══════════════════════════════════════════════════════════════════════════════
 # Streamlit UI  — mobile-first (no sidebar, centered, touch-friendly)
 # ══════════════════════════════════════════════════════════════════════════════
@@ -927,6 +942,12 @@ c3, c4 = st.columns(2)
 c3.metric("Ball Accuracy",      f"{gs['ball_acc']*100:.1f}%", f"{gs['ball_correct']}/{gs['ball_total']}")
 c4.metric("Strike Accuracy",    f"{gs['strike_acc']*100:.1f}%", f"{gs['strike_correct']}/{gs['strike_total']}")
 st.caption(f"Consistency {game['consistency']*100:.1f}%  ·  {len(game['pitchers'])} pitchers  ·  {len(game['catchers'])} catchers")
+
+# Zone chart preview
+_prev_home = guess_color(game["home_abb"], "#841617")
+_prev_away = guess_color(game["away_abb"], "#005A9C")
+st.markdown("**All Missed Calls — Estimated Ump Zone**")
+st.image(render_zone_preview(game, _prev_home, _prev_away), use_container_width=True)
 
 with st.expander("Pitcher breakdown"):
     for p in game["pitchers"]:
