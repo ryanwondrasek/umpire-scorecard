@@ -859,8 +859,6 @@ def generate_pdf(game, ump_name, home_color, away_color) -> bytes:
         build_workbook_page(pdf, game, ump_name, home_color, away_color)
         for p in game["pitchers"]:
             build_pitcher_page(pdf, game, p, ump_name, home_color, away_color)
-        for c in game["catchers"]:
-            build_catcher_page(pdf, game, c, ump_name, home_color, away_color)
     buf.seek(0)
     return buf.read()
 
@@ -963,7 +961,7 @@ c2.metric("Missed Calls",       gs["phantom"]+gs["missed"],   f"{gs['phantom']} 
 c3, c4 = st.columns(2)
 c3.metric("Ball Accuracy",      f"{gs['ball_acc']*100:.1f}%", f"{gs['ball_correct']}/{gs['ball_total']}")
 c4.metric("Strike Accuracy",    f"{gs['strike_acc']*100:.1f}%", f"{gs['strike_correct']}/{gs['strike_total']}")
-st.caption(f"Consistency {game['consistency']*100:.1f}%  ·  {len(game['pitchers'])} pitchers  ·  {len(game['catchers'])} catchers")
+st.caption(f"Consistency {game['consistency']*100:.1f}%  ·  {len(game['pitchers'])} pitchers")
 
 # Zone chart preview
 _prev_home = guess_color(game["home_abb"], "#841617")
@@ -1012,7 +1010,7 @@ if st.session_state.get("_pdf_key") != _cache_key:
             import traceback; st.code(traceback.format_exc())
             st.stop()
 
-n_pages = len(game["pitchers"]) + 2 + len(game["catchers"])
+n_pages = len(game["pitchers"]) + 2
 st.success(f"✅ {n_pages}-page report ready for {game['home_abb']} vs {game['away_abb']}")
 st.download_button(
     label="⬇ Download Scorecard PDF",
